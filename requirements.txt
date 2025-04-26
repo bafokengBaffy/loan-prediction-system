@@ -1,0 +1,9 @@
+flask
+scikit-learn
+xgboost
+pandas
+numpy
+shap
+plotly
+seaborn
+mlflow
