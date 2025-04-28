@@ -1,7 +1,7 @@
 ,Loan_ID,Gender,Married,Dependents,Education,Self_Employed,ApplicantIncome,CoapplicantIncome,LoanAmount,Loan_Amount_Term,Credit_History,Property_Area,Loan_Status
 count,614,601,611,599,614,582,614.0,614.0,592.0,600.0,564.0,614,614
 unique,614,2,2,4,2,2,,,,,,3,2
-top,LP001002,Male,Yes,0,Graduate,No,,,,,,Semiurban,Y
+top,LP002990,Male,Yes,0,Graduate,No,,,,,,Semiurban,Y
 freq,1,489,398,345,480,500,,,,,,233,422
 mean,,,,,,,5403.459283387622,1621.2457980271008,146.41216216216216,342.0,0.8421985815602837,,
 std,,,,,,,6109.041673387178,2926.2483692241885,85.58732523570545,65.12040985461256,0.3648783192364048,,
