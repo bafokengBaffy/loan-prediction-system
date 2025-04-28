@@ -1,21 +1,28 @@
-# app.py - Complete Loan Prediction Application with Explanatory Analysis
-import streamlit as st # type: ignore
-import pandas as pd # type: ignore
-import numpy as np # type: ignore
-import joblib # type: ignore
+# app.py
+import streamlit as st
+import pandas as pd
+import numpy as np
+import joblib
 import json
-import matplotlib.pyplot as plt # type: ignore
-import seaborn as sns # type: ignore
-from PIL import Image # type: ignore
+import matplotlib.pyplot as plt
+import seaborn as sns
+from PIL import Image
 from pathlib import Path
 import os
-import mlflow # type: ignore
+import mlflow
 import time
 from datetime import datetime
 from config import CONFIG
-import plotly.express as px # type: ignore
-import plotly.graph_objects as go # type: ignore
-from plotly.subplots import make_subplots # type: ignore
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+from recommendations import select_recommendation
+from input_validation import validate_all_inputs
+from database import init_db, save_submission
+
+
+# Initialize database connection
+conn = init_db()
 
  #Set page config with valid URLs
 st.set_page_config(
@@ -370,6 +377,37 @@ def get_user_input():
     return None
 
 def get_recommendations(prediction, proba, input_data):
+    """World-class recommendation engine"""
+    try:
+        # Input validation (40+ checks)
+        validation_messages = validate_all_inputs(input_data)
+        if validation_messages:
+            st.warning("Input Validation Notes:")
+            for msg in validation_messages:
+                st.markdown(f"- {msg}")
+        
+        # Get recommendations from our 300+ library
+        recommendations = select_recommendation(prediction, proba, input_data)
+        
+        # Display with appropriate styling
+        for rec in recommendations:
+            if "⚠️" in rec or "❌" in rec:
+                style = "warning-note" if prediction == 1 else "high-confidence-rejection"
+            elif "🎉" in rec or "🌟" in rec:
+                style = "high-confidence-approval"
+            else:
+                style = "neutral-advice"
+            
+            st.markdown(f"""
+            <div class="recommendation {style}">
+                {rec}
+            </div>
+            """, unsafe_allow_html=True)
+            
+    except Exception as e:
+        st.error(f"Recommendation engine error: {str(e)}")
+
+
     """Generate confidence-based recommendations with improved visibility"""
     recommendations = []
     confidence_level = proba * 100
