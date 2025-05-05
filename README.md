@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Loan Approval Prediction System
 
 ![App Screenshot](https://via.placeholder.com/800x400?text=Loan+Approval+Prediction+System+Dashboard)
@@ -60,3 +61,6 @@ This project is licensed under the [MIT License](LICENSE).
 ## 🙌 Contributing
 
 Contributions are welcome! Feel free to open issues or submit pull requests to improve the project.
+=======
+# loan-prediction-system
+>>>>>>> 0308e5dd246c84d403307e18c432f72b17960a89
