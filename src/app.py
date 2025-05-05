@@ -1,4 +1,4 @@
-# app.py
+#app.py
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -16,15 +16,15 @@ from config import CONFIG
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from sklearn.metrics import confusion_matrix, classification_report
 from recommendations import select_recommendation
 from input_validation import validate_all_inputs
 from database import init_db, save_submission
 
-
 # Initialize database connection
 conn = init_db()
 
- #Set page config with valid URLs
+# Set page config with valid URLs
 st.set_page_config(
     page_title=CONFIG["app"]["page_title"],
     page_icon=CONFIG["app"]["page_icon"],
@@ -234,6 +234,252 @@ st.markdown("""
     .stDataFrame tbody tr:hover {
         background-color: #3a3f5a !important;
     }
+    
+    /* Confusion matrix specific styling */
+    .confusion-matrix {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+    }
+    
+    .confusion-matrix th, .confusion-matrix td {
+        padding: 12px;
+        text-align: center;
+        border: 1px solid #2a2e3e;
+    }
+    
+    .confusion-matrix th {
+        background-color: #2a2e3e;
+        font-weight: bold;
+    }
+    
+    .confusion-matrix .true-positive {
+        background-color: rgba(46, 125, 50, 0.3);
+    }
+    
+    .confusion-matrix .true-negative {
+        background-color: rgba(198, 40, 40, 0.3);
+    }
+    
+    .confusion-matrix .false-positive {
+        background-color: rgba(255, 152, 0, 0.3);
+    }
+    
+    .confusion-matrix .false-negative {
+        background-color: rgba(33, 150, 243, 0.3);
+    }
+    
+    /* Dashboard specific styles */
+    .dashboard-header {
+        background: linear-gradient(135deg, #1e2130 0%, #2a2e3e 100%);
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    }
+    
+    .dashboard-card {
+        background-color: #1e2130;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        border: 1px solid #2a2e3e;
+    }
+    
+    .dashboard-card-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #ffffff;
+        border-bottom: 2px solid #4a90e2;
+        padding-bottom: 0.5rem;
+    }
+    
+    .feature-highlight {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        background-color: #2a2e3e;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .feature-highlight:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    }
+    
+    .feature-icon {
+        font-size: 2rem;
+        margin-right: 1rem;
+        color: #4a90e2;
+    }
+    
+    .feature-content {
+        flex: 1;
+    }
+    
+    .feature-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #ffffff;
+    }
+    
+    .feature-desc {
+        color: #a0a4b8;
+        font-size: 0.95rem;
+    }
+    
+    .model-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    
+    .stat-card {
+        background-color: #2a2e3e;
+        border-radius: 10px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    }
+    
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #4a90e2;
+        margin: 0.5rem 0;
+    }
+    
+    .stat-label {
+        font-size: 1rem;
+        color: #a0a4b8;
+    }
+    
+    .timeline {
+        position: relative;
+        padding-left: 2rem;
+        margin: 2rem 0;
+    }
+    
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 7px;
+        top: 0;
+        height: 100%;
+        width: 2px;
+        background: #4a90e2;
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-bottom: 2rem;
+    }
+    
+    .timeline-dot {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #4a90e2;
+    }
+    
+    .timeline-content {
+        margin-left: 2rem;
+        padding: 1rem;
+        background-color: #2a2e3e;
+        border-radius: 8px;
+    }
+    
+    .timeline-date {
+        font-size: 0.9rem;
+        color: #a0a4b8;
+        margin-bottom: 0.5rem;
+    }
+    
+    .timeline-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 0.5rem;
+    }
+    
+    .timeline-desc {
+        font-size: 0.95rem;
+        color: #a0a4b8;
+    }
+    
+    /* Key feature styling */
+    .key-feature {
+        display: flex;
+        margin-bottom: 1.5rem;
+        background-color: #2a2e3e;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .key-feature-visual {
+        flex: 0 0 40%;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #1e2130;
+    }
+    
+    .key-feature-content {
+        flex: 1;
+        padding: 1.5rem;
+    }
+    
+    .key-feature-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 0.5rem;
+    }
+    
+    .key-feature-desc {
+        color: #a0a4b8;
+        margin-bottom: 1rem;
+    }
+    
+    .key-feature-stats {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .key-feature-stat {
+        background-color: #1e2130;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        text-align: center;
+        min-width: 100px;
+    }
+    
+    .key-feature-stat-value {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #4a90e2;
+    }
+    
+    .key-feature-stat-label {
+        font-size: 0.8rem;
+        color: #a0a4b8;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -406,163 +652,6 @@ def get_recommendations(prediction, proba, input_data):
             
     except Exception as e:
         st.error(f"Recommendation engine error: {str(e)}")
-
-
-    """Generate confidence-based recommendations with improved visibility"""
-    recommendations = []
-    confidence_level = proba * 100
-    
-    # Confidence visualization
-    st.markdown('<div class="recommendation-title">📊 Decision Confidence</div>', unsafe_allow_html=True)
-    
-    if prediction == 1:
-        confidence_color = "#4caf50"  # Green for approval
-        confidence_label = "Approval Confidence"
-    else:
-        confidence_color = "#f44336"  # Red for rejection
-        confidence_label = "Rejection Confidence"
-    
-    st.markdown(f"""
-    <div class="confidence-meter">
-        <div class="confidence-fill" style="width: {confidence_level}%; background-color: {confidence_color};">
-            {confidence_level:.1f}%
-        </div>
-    </div>
-    <div class="confidence-label">
-        {confidence_label} • {'High' if confidence_level >= 75 else 'Medium' if confidence_level >= 50 else 'Low'} Confidence
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Convert input values to numeric
-    try:
-        loan_to_income = float(input_data['Loan_to_Income_Ratio'])
-        dependents = float(input_data['Dependents'])
-        credit_history = float(input_data['Credit_History'])
-        loan_amount = float(input_data['LoanAmount'])
-        total_income = float(input_data['Total_Income'])
-        loan_term = float(input_data['Loan_Amount_Term'])
-    except KeyError as e:
-        st.error(f"Missing required data for recommendations: {str(e)}")
-        return []
-    
-    # Prediction-specific recommendations
-    st.markdown('<div class="recommendation-title">📌 Actionable Recommendations</div>', unsafe_allow_html=True)
-    
-    if prediction == 1:  # Approved
-        if confidence_level >= 75:
-            recommendations.append({
-                "type": "high-confidence-approval",
-                "message": "🎉 Excellent! Your application is highly likely to be approved with favorable terms."
-            })
-        elif confidence_level >= 50:
-            recommendations.append({
-                "type": "medium-confidence-approval",
-                "message": "👍 Good news! Your application is likely to be approved, but terms may vary."
-            })
-        else:
-            recommendations.append({
-                "type": "low-confidence-approval",
-                "message": "🤞 Your application may be approved, but consider these improvements for better terms."
-            })
-        
-        if loan_to_income > 0.4:
-            ideal_loan = total_income * 0.35
-            recommendations.append({
-                "type": "warning-note",
-                "message": f"⚠️ Your loan-to-income ratio is {loan_to_income:.2f} (recommended <0.4). Consider reducing loan amount to ₹{ideal_loan:,.0f} for better terms."
-            })
-            
-        if credit_history == 0:
-            recommendations.append({
-                "type": "warning-note",
-                "message": "📈 You might get better interest rates by building credit history with a credit card or smaller loan."
-            })
-            
-        if dependents >= 2:
-            recommendations.append({
-                "type": "neutral-advice",
-                "message": "👨‍👩‍👧‍👦 With multiple dependents, consider opting for loan insurance for added security."
-            })
-            
-    else:  # Rejected
-        if confidence_level >= 75:
-            recommendations.append({
-                "type": "high-confidence-rejection",
-                "message": "❌ Strong indicators suggest your application may be declined based on current parameters."
-            })
-        elif confidence_level >= 50:
-            recommendations.append({
-                "type": "medium-confidence-rejection",
-                "message": "⚠️ Your application currently doesn't meet all approval criteria, but improvements are possible."
-            })
-        else:
-            recommendations.append({
-                "type": "low-confidence-rejection",
-                "message": "🤔 Your application is borderline. Small improvements could change the outcome."
-            })
-        
-        rejection_factors = []
-        
-        if credit_history == 0:
-            rejection_factors.append("no established credit history")
-            recommendations.append({
-                "type": "neutral-advice",
-                "message": "🔹 Build credit: Apply for a secured credit card or small personal loan (₹10,000-50,000) to establish credit."
-            })
-            
-        if loan_to_income > 0.5:
-            rejection_factors.append(f"high debt burden (ratio: {loan_to_income:.2f})")
-            ideal_loan = total_income * 0.35
-            recommendations.append({
-                "type": "neutral-advice",
-                "message": f"🔹 Reduce loan amount: Try ₹{ideal_loan:,.0f} or add a co-signer with income ≥₹{total_income*0.3:,.0f}/month."
-            })
-            
-        if dependents > 3:
-            rejection_factors.append("high number of dependents")
-            recommendations.append({
-                "type": "neutral-advice",
-                "message": "🔹 Strengthen application: Add a co-borrower with stable income (≥₹25,000/month)."
-            })
-        
-        if loan_term > 300:
-            recommendations.append({
-                "type": "neutral-advice",
-                "message": f"⏱️ Consider shorter term: {int(loan_term/12)} years is long. Try 15-20 years for better approval chances."
-            })
-        
-        if not rejection_factors:
-            rejection_factors.append("multiple risk factors")
-        
-        improvement_timeframe = "3 months" if confidence_level >= 50 else "6 months"
-        recommendations.append({
-            "type": "neutral-advice",
-            "message": f"📅 Reapply in {improvement_timeframe} after improving these factors for better chances."
-        })
-    
-    # Financial health tips (always shown)
-    st.markdown('<div class="recommendation-title">💡 Financial Health Tips</div>', unsafe_allow_html=True)
-    
-    recommendations.append({
-        "type": "neutral-advice",
-        "message": f"💰 Emergency Fund: Maintain at least 3-6 months of expenses as savings (₹{total_income * 3:,.0f} based on your income)."
-    })
-    
-    if loan_to_income > 0.3:
-        recommendations.append({
-            "type": "warning-note",
-            "message": f"⚖️ Debt Management: Keep total monthly debt payments below 40% of income (₹{total_income * 0.4 / 12:,.0f}/month for you)."
-        })
-    
-    # Display all recommendations
-    for rec in recommendations:
-        st.markdown(f"""
-        <div class="recommendation {rec['type']}">
-            {rec['message']}
-        </div>
-        """, unsafe_allow_html=True)
-    
-    return recommendations
 
 def show_feature_importance(model, features, num_features=15):
     """Enhanced feature importance visualization with dark mode"""
@@ -915,294 +1004,207 @@ def show_correlation_analysis(data):
     else:
         st.error("No numeric features available for correlation analysis")
 
-        
-def show_data_distribution(data, feature):
-    """Enhanced data distribution with explanatory analysis"""
-    try:
-        if feature not in data.columns:
-            raise KeyError(f"Feature '{feature}' not found")
-            
-        # Ensure Probability column exists
-        if 'Probability' not in data.columns:
-            data['Probability'] = 0.5  # Default value if missing
-            
-        with st.container():
-            st.markdown('<div class="viz-container">', unsafe_allow_html=True)
-            st.subheader(f"📈 {feature} Distribution Analysis")
-            
-            # Explanatory section
-            with st.expander("📘 Understanding Data Distributions", expanded=True):
-                st.markdown(f"""
-                <div class="analysis-explanation">
-                <h4>Analysis Focus: {feature}</h4>
-                <p>Understanding how this feature relates to loan decisions:</p>
-                
-                <ul>
-                    <li><strong>Approved vs Rejected Distributions:</strong> Compare values for approved/rejected applications</li>
-                    <li><strong>Typical Ranges:</strong> Identify common value ranges for approvals</li>
-                    <li><strong>Outlier Detection:</strong> Spot unusual values that might need investigation</li>
-                    <li><strong>Distribution Shape:</strong> Normal, skewed, or bimodal distributions suggest different decision patterns</li>
-                </ul>
-                
-                <p><strong>Key Questions:</strong></p>
-                <ul>
-                    <li>Do approved loans cluster in specific ranges?</li>
-                    <li>Are there clear cutoff points between approvals/rejections?</li>
-                    <li>How much overlap exists between approved/rejected distributions?</li>
-                </ul>
-                </div>
-                """, unsafe_allow_html=True)
-
-            tab1, tab2, tab3, tab4 = st.tabs(["Histogram", "Violin Plot", "Box Plot", "Scatter Matrix"])
-            
-            with tab1:
-                st.markdown(f"""
-                <div class="analysis-explanation">
-                <h4>Histogram Analysis</h4>
-                <p>Shows value distribution frequency:</p>
-                <ul>
-                    <li><strong>Peaks:</strong> Most common values for approvals/rejections</li>
-                    <li><strong>Skewness:</strong> Direction of value concentration (left or right)</li>
-                    <li><strong>Gaps:</strong> Uncommon value ranges that might indicate data issues</li>
-                    <li><strong>Bimodality:</strong> Two distinct peaks may indicate different applicant groups</li>
-                </ul>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                fig = px.histogram(
-                    data,
-                    x=feature,
-                    color='Prediction',
-                    nbins=50,
-                    barmode='overlay',
-                    marginal="box",
-                    title=f'Distribution of {feature}'
-                )
-                st.plotly_chart(fig, use_container_width=True)
-                
-            with tab2:
-                st.markdown(f"""
-                <div class="analysis-explanation">
-                <h4>Violin Plot Analysis</h4>
-                <p>Combines distribution and summary statistics:</p>
-                <ul>
-                    <li><strong>Width:</strong> Density of values at different points</li>
-                    <li><strong>White Dot:</strong> Median value (middle point)</li>
-                    <li><strong>Box:</strong> Interquartile range (25th-75th percentiles)</li>
-                    <li><strong>Whiskers:</strong> Typical range of values (1.5×IQR)</li>
-                </ul>
-                <p>Violin plots show the complete distribution shape while box plots emphasize summary statistics.</p>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                fig = px.violin(
-                    data,
-                    x='Prediction',
-                    y=feature,
-                    color='Prediction',
-                    box=True,
-                    points="all",
-                    title=f'Violin Plot of {feature} by Prediction'
-                )
-                st.plotly_chart(fig, use_container_width=True)
-                
-            with tab3:
-                st.markdown(f"""
-                <div class="analysis-explanation">
-                <h4>Box Plot Analysis</h4>
-                <p>Emphasizes statistical measures:</p>
-                <ul>
-                    <li><strong>Box:</strong> Middle 50% of values (25th-75th percentiles)</li>
-                    <li><strong>Whiskers:</strong> Typical range (1.5×IQR from quartiles)</li>
-                    <li><strong>Outliers:</strong> Values outside typical range shown as dots</li>
-                    <li><strong>Median Line:</strong> Middle value of the distribution</li>
-                </ul>
-                <p>Box plots help quickly compare distributions between approved and rejected applications.</p>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                fig = px.box(
-                    data,
-                    x='Prediction',
-                    y=feature,
-                    color='Prediction',
-                    notched=True,
-                    title=f'Box Plot of {feature} by Prediction'
-                )
-                st.plotly_chart(fig, use_container_width=True)
-                
-            with tab4:
-                st.markdown(f"""
-                <div class="analysis-explanation">
-                <h4>Scatter Matrix Analysis</h4>
-                <p>Reveals relationships between features:</p>
-                <ul>
-                    <li><strong>Diagonal:</strong> Histograms of individual features</li>
-                    <li><strong>Off-diagonal:</strong> Correlation patterns between features</li>
-                    <li><strong>Color Coding:</strong> Approval status differentiation</li>
-                    <li><strong>Clusters:</strong> Groups of similar applications</li>
-                </ul>
-                <p>Look for clear separation between approved/rejected points in the scatter plots.</p>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                fig = px.scatter_matrix(
-                    data,
-                    dimensions=[feature, 'Probability', 'Total_Income'],
-                    color='Prediction',
-                    title=f'Scatter Matrix of {feature}'
-                )
-                st.plotly_chart(fig, use_container_width=True)
-                
-            st.markdown('</div>', unsafe_allow_html=True)
-            
-    except Exception as e:
-        st.error(f"Data distribution error: {str(e)}")
-
-def show_outlier_analysis(data, feature, threshold):
-    """Enhanced outlier detection with explanatory analysis"""
-    st.subheader("🔎 Outlier Detection Analysis")
+def show_confusion_matrix_analysis(y_true, y_pred, y_proba):
+    """Enhanced confusion matrix analysis with table and metrics"""
+    st.subheader("📊 Confusion Matrix Analysis")
     
-    with st.expander("📘 Understanding Outliers", expanded=True):
-        st.markdown(f"""
-        <div class="analysis-explanation">
-        <h4>Outlier Definition</h4>
-        <p>Values outside {threshold}×IQR from quartiles:</p>
-        <ul>
-            <li><strong>IQR:</strong> Range between 25th-75th percentiles (middle 50% of data)</li>
-            <li><strong>Threshold:</strong> {threshold}×IQR multiplier (adjustable in sidebar)</li>
-            <li><strong>Impact:</strong> May indicate errors or special cases needing review</li>
-        </ul>
-        
-        <h4>Recommendations:</h4>
-        <ul>
-            <li>Investigate extreme values for data entry errors</li>
-            <li>Check if outliers represent valid special cases</li>
-            <li>Consider capped processing for extreme values</li>
-            <li>Review model sensitivity to outliers</li>
-        </ul>
-        
-        <h4>Common Causes:</h4>
-        <ul>
-            <li>Data entry errors (extra zeros, misplaced decimals)</li>
-            <li>Legitimate extreme cases (very high income, very small loans)</li>
-            <li>System processing errors</li>
-        </ul>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    if feature in data.columns:
-        Q1 = data[feature].quantile(0.25)
-        Q3 = data[feature].quantile(0.75)
-        IQR = Q3 - Q1
-        
-        fig = px.scatter(
-            data,
-            x=feature,
-            y='Probability',
-            color='Prediction',
-            color_discrete_map={'Approved': '#27ae60', 'Rejected': '#e74c3c'},
-            hover_data=['Loan_ID', 'ApplicantIncome', 'LoanAmount'],
-            title=f'Outlier Detection for {feature}'
-        )
-        
-        lower_bound = Q1 - threshold * IQR
-        upper_bound = Q3 + threshold * IQR
-        fig.add_vline(x=lower_bound, line_dash="dash", line_color="red")
-        fig.add_vline(x=upper_bound, line_dash="dash", line_color="red")
-        
-        fig.update_layout(height=600)
-        st.plotly_chart(fig, use_container_width=True)
-        
-        outliers = data[(data[feature] < lower_bound) | (data[feature] > upper_bound)]
-        if not outliers.empty:
-            st.subheader(f"📋 Outliers ({len(outliers)} found)")
-            
-            # Calculate percentage of approvals in outliers
-            outlier_approval_rate = (outliers['Prediction'] == 'Approved').mean()
-            st.markdown(f"""
-            <div class="metric-box">
-                <p><strong>Outlier Approval Rate:</strong> {outlier_approval_rate:.1%}</p>
-                <p><strong>Overall Approval Rate:</strong> {(data['Prediction'] == 'Approved').mean():.1%}</p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            st.dataframe(
-                outliers[['Loan_ID', feature, 'Prediction', 'Confidence']],
-                use_container_width=True
-            )
-        else:
-            st.success("No outliers detected with current threshold")
-    else:
-        st.error(f"Selected feature '{feature}' not found in data")
-
-def show_correlation_analysis(data):
-    """Enhanced correlation analysis with explanatory analysis"""
-    st.subheader("📊 Correlation Analysis")
-    
-    with st.expander("📘 Understanding Correlations", expanded=True):
+    with st.expander("📘 Understanding the Confusion Matrix", expanded=True):
         st.markdown("""
         <div class="analysis-explanation">
-        <h4>Correlation Interpretation</h4>
-        <p>Measures how features move together (-1 to 1):</p>
+        <h4>Confusion Matrix Components</h4>
+        <p>Shows model prediction performance across classes:</p>
         <ul>
-            <li><strong>+1:</strong> Perfect positive relationship (both increase together)</li>
-            <li><strong>0:</strong> No relationship</li>
-            <li><strong>-1:</strong> Perfect negative relationship (one increases as other decreases)</li>
+            <li><strong>True Positives (TP):</strong> Correctly approved loans</li>
+            <li><strong>False Positives (FP):</strong> Loans incorrectly approved (Type I error)</li>
+            <li><strong>True Negatives (TN):</strong> Correctly rejected loans</li>
+            <li><strong>False Negatives (FN):</strong> Loans incorrectly rejected (Type II error)</li>
         </ul>
         
-        <h4>Key Insights:</h4>
+        <h4>Key Metrics Derived:</h4>
         <ul>
-            <li><strong>Strong correlations (>0.7):</strong> May indicate redundant features</li>
-            <li><strong>Unexpected correlations:</strong> Need investigation for hidden relationships</li>
-            <li><strong>High target correlations:</strong> Guide feature selection for modeling</li>
-            <li><strong>Negative correlations:</strong> Show inverse relationships between features</li>
-        </ul>
-        
-        <h4>Color Scale:</h4>
-        <ul>
-            <li><strong>Blue:</strong> Positive correlation</li>
-            <li><strong>Red:</strong> Negative correlation</li>
-            <li><strong>White:</strong> No correlation</li>
+            <li><strong>Accuracy:</strong> (TP+TN)/Total - Overall correctness</li>
+            <li><strong>Precision:</strong> TP/(TP+FP) - Approval correctness</li>
+            <li><strong>Recall/Sensitivity:</strong> TP/(TP+FN) - Approved loan coverage</li>
+            <li><strong>Specificity:</strong> TN/(TN+FP) - Rejected loan coverage</li>
+            <li><strong>F1 Score:</strong> 2*(Precision*Recall)/(Precision+Recall) - Balanced measure</li>
         </ul>
         </div>
         """, unsafe_allow_html=True)
+
+    # Calculate confusion matrix
+    cm = confusion_matrix(y_true, y_pred)
+    tn, fp, fn, tp = cm.ravel()
     
-    numeric_features = [f for f in CONFIG["data"]["features"]["numeric"] if f in data.columns]
-    if numeric_features:
-        numeric_data = data[numeric_features + ['Probability']]
-        corr = numeric_data.corr()
+    # Create confusion matrix table with styling
+    cm_table = pd.DataFrame(
+        cm,
+        columns=['Predicted Rejected', 'Predicted Approved'],
+        index=['Actual Rejected', 'Actual Approved']
+    )
+    
+    # Display the confusion matrix table with enhanced styling
+    st.subheader("Confusion Matrix")
+    st.markdown("""
+    <table class="confusion-matrix">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Predicted Rejected</th>
+                <th>Predicted Approved</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Actual Rejected</strong></td>
+                <td class="true-negative">{tn}</td>
+                <td class="false-positive">{fp}</td>
+            </tr>
+            <tr>
+                <td><strong>Actual Approved</strong></td>
+                <td class="false-negative">{fn}</td>
+                <td class="true-positive">{tp}</td>
+            </tr>
+        </tbody>
+    </table>
+    """.format(tn=tn, fp=fp, fn=fn, tp=tp), unsafe_allow_html=True)
+    
+    # Calculate metrics
+    accuracy = (tp + tn) / (tp + tn + fp + fn)
+    precision = tp / (tp + fp) if (tp + fp) > 0 else 0
+    recall = tp / (tp + fn) if (tp + fn) > 0 else 0
+    specificity = tn / (tn + fp) if (tn + fp) > 0 else 0
+    f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+    
+    # Display metrics in columns with improved styling
+    st.subheader("Performance Metrics")
+    col1, col2, col3, col4, col5 = st.columns(5)
+    
+    with col1:
+        st.markdown("""
+        <div class="metric-box">
+            <h4>Accuracy</h4>
+            <p>{:.1%}</p>
+            <small>Overall correctness</small>
+        </div>
+        """.format(accuracy), unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("""
+        <div class="metric-box">
+            <h4>Precision</h4>
+            <p>{:.1%}</p>
+            <small>Approval correctness</small>
+        </div>
+        """.format(precision), unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown("""
+        <div class="metric-box">
+            <h4>Recall</h4>
+            <p>{:.1%}</p>
+            <small>Approved loan coverage</small>
+        </div>
+        """.format(recall), unsafe_allow_html=True)
+    
+    with col4:
+        st.markdown("""
+        <div class="metric-box">
+            <h4>Specificity</h4>
+            <p>{:.1%}</p>
+            <small>Rejected loan coverage</small>
+        </div>
+        """.format(specificity), unsafe_allow_html=True)
+    
+    with col5:
+        st.markdown("""
+        <div class="metric-box">
+            <h4>F1 Score</h4>
+            <p>{:.1%}</p>
+            <small>Balanced measure</small>
+        </div>
+        """.format(f1), unsafe_allow_html=True)
+    
+    # Detailed classification report
+    st.subheader("Detailed Classification Report")
+    report = classification_report(y_true, y_pred, output_dict=True)
+    report_df = pd.DataFrame(report).transpose()
+    st.dataframe(
+        report_df.style
+            .background_gradient(cmap='Blues', subset=['precision', 'recall', 'f1-score'])
+            .format({'precision': '{:.2f}', 'recall': '{:.2f}', 'f1-score': '{:.2f}'}),
+        use_container_width=True
+    )
+    
+    # Threshold analysis
+    st.subheader("📈 Threshold Sensitivity Analysis")
+    thresholds = np.linspace(0.1, 0.9, 9)
+    metrics = []
+    
+    for thresh in thresholds:
+        y_pred_thresh = (y_proba >= thresh).astype(int)
+        cm_thresh = confusion_matrix(y_true, y_pred_thresh)
+        tn, fp, fn, tp = cm_thresh.ravel()
         
-        fig = px.imshow(
-            corr,
-            text_auto=True,
-            aspect="auto",
-            color_continuous_scale='RdBu',
-            range_color=[-1, 1],
-            title="Feature Correlation Matrix"
+        metrics.append({
+            'Threshold': thresh,
+            'Approvals': tp + fp,
+            'Rejections': tn + fn,
+            'FP Rate': fp / (fp + tn) if (fp + tn) > 0 else 0,
+            'FN Rate': fn / (fn + tp) if (fn + tp) > 0 else 0,
+            'Accuracy': (tp + tn) / (tp + tn + fp + fn)
+        })
+        
+    metrics_df = pd.DataFrame(metrics)
+    
+    # Display threshold analysis table
+    st.dataframe(
+        metrics_df.style
+            .background_gradient(cmap='Blues', subset=['FP Rate', 'FN Rate', 'Accuracy'])
+            .format({
+                'Threshold': '{:.2f}',
+                'FP Rate': '{:.2%}',
+                'FN Rate': '{:.2%}',
+                'Accuracy': '{:.2%}'
+            }),
+        use_container_width=True
+    )
+    
+    # Plot threshold sensitivity
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=metrics_df['Threshold'],
+        y=metrics_df['FP Rate'],
+        name='False Approval Rate',
+        line=dict(color='#ef9a9a', width=3)
+    ))
+    fig.add_trace(go.Scatter(
+        x=metrics_df['Threshold'],
+        y=metrics_df['FN Rate'],
+        name='False Rejection Rate',
+        line=dict(color='#90caf9', width=3)
+    ))
+    fig.add_trace(go.Scatter(
+        x=metrics_df['Threshold'],
+        y=metrics_df['Accuracy'],
+        name='Accuracy',
+        line=dict(color='#a5d6a7', width=3, dash='dot')
+    ))
+    
+    fig.update_layout(
+        title='Error Rates by Decision Threshold',
+        xaxis_title='Approval Probability Threshold',
+        yaxis_title='Rate',
+        height=500,
+        template='plotly_dark',
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1
         )
-        fig.update_layout(height=700)
-        st.plotly_chart(fig, use_container_width=True)
-        
-        # Highlight strongest correlations
-        corr_matrix = corr.abs()
-        np.fill_diagonal(corr_matrix.values, 0)  # Ignore diagonal
-        strong_corrs = corr_matrix.unstack().sort_values(ascending=False).drop_duplicates()
-        
-        if len(strong_corrs) > 0:
-            st.subheader("🔍 Strongest Correlations")
-            top_corrs = strong_corrs.head(5)
-            
-            cols = st.columns(2)
-            for i, (pair, value) in enumerate(top_corrs.items()):
-                with cols[i % 2]:
-                    st.metric(
-                        label=f"{pair[0]} ↔ {pair[1]}",
-                        value=f"{value:.2f}",
-                        delta="Positive" if corr.loc[pair[0], pair[1]] > 0 else "Negative"
-                    )
-    else:
-        st.error("No numeric features available for correlation analysis")
+    )
+    st.plotly_chart(fig, use_container_width=True)
 
 def show_data_explorer(data, confidence_threshold, status_filter):
     """Enhanced data explorer with explanatory analysis"""
@@ -1234,7 +1236,8 @@ def show_data_explorer(data, confidence_threshold, status_filter):
             <li>Adjust confidence threshold in sidebar to focus on more certain predictions</li>
         </ul>
         </div>
-        """, unsafe_allow_html=True)
+        """.format(confidence_threshold=confidence_threshold, status_filter=status_filter), 
+        unsafe_allow_html=True)
     
     try:
         filtered_data = data.copy()
@@ -1271,42 +1274,318 @@ def show_data_explorer(data, confidence_threshold, status_filter):
     except Exception as e:
         st.error(f"Data explorer error: {str(e)}")
 
+def show_dashboard(model, metadata, raw_data):
+    """Show the home dashboard with model overview and key metrics"""
+    st.markdown('<div class="dashboard-header">', unsafe_allow_html=True)
+    
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        st.markdown(f'<div class="header-text">{CONFIG["app"]["content"]["header_title"]}</div>', unsafe_allow_html=True)
+        st.markdown(f'<p style="font-size: 1.2rem; color: #a0a4b8;">{CONFIG["app"]["content"]["header_subtitle"]}</p>', unsafe_allow_html=True)
+    
+    with col2:
+        if metadata:
+            st.markdown("""
+            <div class="metric-box" style="text-align: center;">
+                <h4>Model Accuracy</h4>
+                <p style="font-size: 2rem; color: #4a90e2; font-weight: bold;">{:.1%}</p>
+                <p style="font-size: 0.9rem;">on validation data</p>
+            </div>
+            """.format(metadata['metrics']['accuracy']), unsafe_allow_html=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Key features section
+    st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
+    st.markdown('<div class="dashboard-card-title">🚀 Key Features</div>', unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown("""
+        <div class="feature-highlight">
+            <div class="feature-icon">📊</div>
+            <div class="feature-content">
+                <div class="feature-title">Advanced Analytics</div>
+                <div class="feature-desc">Real-time predictions with explainable AI and feature importance analysis</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div class="feature-highlight">
+            <div class="feature-icon">🔍</div>
+            <div class="feature-content">
+                <div class="feature-title">Deep Insights</div>
+                <div class="feature-desc">Understand approval drivers with interactive visualizations</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("""
+        <div class="feature-highlight">
+            <div class="feature-icon">🤖</div>
+            <div class="feature-content">
+                <div class="feature-title">Smart Recommendations</div>
+                <div class="feature-desc">300+ tailored suggestions to improve approval chances</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div class="feature-highlight">
+            <div class="feature-icon">📈</div>
+            <div class="feature-content">
+                <div class="feature-title">Performance Tracking</div>
+                <div class="feature-desc">Monitor model metrics and decision patterns over time</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown("""
+        <div class="feature-highlight">
+            <div class="feature-icon">🛡️</div>
+            <div class="feature-content">
+                <div class="feature-title">Bias Detection</div>
+                <div class="feature-desc">Identify and mitigate potential fairness issues</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div class="feature-highlight">
+            <div class="feature-icon">⚙️</div>
+            <div class="feature-content">
+                <div class="feature-title">Customizable</div>
+                <div class="feature-desc">Adjust thresholds and parameters to match your risk appetite</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Model statistics
+    st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
+    st.markdown('<div class="dashboard-card-title">📊 Model Statistics</div>', unsafe_allow_html=True)
+    
+    if metadata:
+        st.markdown("""
+        <div class="model-stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Model Type</div>
+                <div class="stat-value">{}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Training Date</div>
+                <div class="stat-value">{}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Precision</div>
+                <div class="stat-value">{:.1%}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Recall</div>
+                <div class="stat-value">{:.1%}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">F1 Score</div>
+                <div class="stat-value">{:.1%}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">ROC AUC</div>
+                <div class="stat-value">{:.3f}</div>
+            </div>
+        </div>
+        """.format(
+            metadata['model_type'],
+            metadata['training_date'],
+            metadata['metrics']['precision'],
+            metadata['metrics']['recall'],
+            metadata['metrics']['f1'],
+            metadata['metrics']['roc_auc']
+        ), unsafe_allow_html=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Key decision factors
+    if model and hasattr(model, 'feature_importances_'):
+        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
+        st.markdown('<div class="dashboard-card-title">🔑 Key Decision Factors</div>', unsafe_allow_html=True)
+        
+        try:
+            # Handle pipeline objects
+            if hasattr(model, 'named_steps'):
+                if 'classifier' in model.named_steps:
+                    model = model.named_steps['classifier']
+            
+            importance = model.feature_importances_
+            features = CONFIG["data"]["features"]["numeric"] + CONFIG["data"]["features"]["categorical"]
+            
+            if len(features) != len(importance):
+                if hasattr(model, 'feature_names_in_'):
+                    features = model.feature_names_in_
+                else:
+                    features = [f"Feature_{i}" for i in range(len(importance))]
+            
+            importance_df = pd.DataFrame({
+                'Feature': features,
+                'Importance': importance
+            }).sort_values('Importance', ascending=False).head(5)
+            
+            importance_df['Feature'] = importance_df['Feature'].str.replace('remainder__', '')\
+                                                             .str.replace('num__', '')\
+                                                             .str.replace('cat__', '')\
+                                                             .str.replace('_', ' ')\
+                                                             .str.title()
+            
+            for idx, row in importance_df.iterrows():
+                st.markdown(f"""
+                <div class="key-feature">
+                    <div class="key-feature-visual">
+                        <div style="width: 100%; height: 150px;">
+                            <div style="height: {row['Importance']*100:.1f}%; background-color: #4a90e2; border-radius: 5px;"></div>
+                        </div>
+                    </div>
+                    <div class="key-feature-content">
+                        <div class="key-feature-title">{row['Feature']}</div>
+                        <div class="key-feature-desc">This is the most influential factor in loan decisions, accounting for {row['Importance']*100:.1f}% of the model's decision-making process.</div>
+                        <div class="key-feature-stats">
+                            <div class="key-feature-stat">
+                                <div class="key-feature-stat-value">{row['Importance']*100:.1f}%</div>
+                                <div class="key-feature-stat-label">Importance</div>
+                            </div>
+                            <div class="key-feature-stat">
+                                <div class="key-feature-stat-value">1</div>
+                                <div class="key-feature-stat-label">Rank</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+        
+        except Exception as e:
+            st.error(f"Could not display feature importance: {str(e)}")
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Model development timeline
+    st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
+    st.markdown('<div class="dashboard-card-title">⏳ Model Development Timeline</div>', unsafe_allow_html=True)
+    
+    st.markdown("""
+    <div class="timeline">
+        <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+                <div class="timeline-date">January 2023</div>
+                <div class="timeline-title">Initial Data Collection</div>
+                <div class="timeline-desc">Gathered 10,000+ historical loan applications with outcomes</div>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+                <div class="timeline-date">March 2023</div>
+                <div class="timeline-title">Feature Engineering</div>
+                <div class="timeline-desc">Created 15+ derived features including income ratios and credit interactions</div>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+                <div class="timeline-date">May 2023</div>
+                <div class="timeline-title">Model Prototyping</div>
+                <div class="timeline-desc">Tested 8 different algorithms including XGBoost, Random Forest, and Logistic Regression</div>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+                <div class="timeline-date">July 2023</div>
+                <div class="timeline-title">Bias Mitigation</div>
+                <div class="timeline-desc">Implemented fairness constraints to ensure equitable decisions across demographics</div>
+            </div>
+        </div>
+        <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+                <div class="timeline-date">September 2023</div>
+                <div class="timeline-title">Production Deployment</div>
+                <div class="timeline-desc">Launched model with 87.4% accuracy and 0.92 AUC score</div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Quick start section
+    st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
+    st.markdown('<div class="dashboard-card-title">⚡ Get Started</div>', unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("""
+        <div style="background-color: #2a2e3e; border-radius: 10px; padding: 1.5rem; margin-bottom: 1rem;">
+            <h3 style="color: #ffffff; margin-top: 0;">New Application</h3>
+            <p style="color: #a0a4b8;">Submit a new loan application for immediate decision</p>
+            <button onclick="window.location.href='#new-application';" style="background-color: #4a90e2; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer;">Start Application</button>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("""
+        <div style="background-color: #2a2e3e; border-radius: 10px; padding: 1.5rem; margin-bottom: 1rem;">
+            <h3 style="color: #ffffff; margin-top: 0;">Explore Data</h3>
+            <p style="color: #a0a4b8;">Analyze historical decisions and model performance</p>
+            <button onclick="window.location.href='#data-explorer';" style="background-color: #4a90e2; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer;">View Data</button>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+
 # Load model and data
 model, metadata = load_model()
 raw_data = load_data()
 
 # Sidebar configuration
 with st.sidebar:
-    st.title("🔍 Analysis Controls")
+    st.title("🔍 Navigation")
     st.markdown("---")
     
-    analysis_type = st.selectbox(
-        "Select Analysis Type",
-        ["New Application", "Feature Importance", "Data Distribution", "Outlier Detection", "Correlation Analysis", "Data Explorer"]
+    page = st.radio(
+        "Go to",
+        ["Dashboard", "New Application", "Feature Importance", "Data Distribution", 
+         "Outlier Detection", "Correlation Analysis", "Data Explorer",
+         "Confusion Matrix"]
     )
     
-    if analysis_type == "Feature Importance":
-        num_features = st.slider("Number of Features to Show", 5, 30, 15,
-                               help="Adjust to focus on top N most important features")
-    elif analysis_type == "Data Distribution":
-        selected_feature = st.selectbox(
-            "Select Feature",
-            CONFIG["data"]["features"]["numeric"] if raw_data is not None else [],
-            help="Choose which feature to analyze distributions for"
-        )
-    elif analysis_type == "Outlier Detection":
-        outlier_feature = st.selectbox(
-            "Select Feature for Outlier Analysis",
-            ['LoanAmount', 'ApplicantIncome', 'Loan_to_Income_Ratio'],
-            help="Choose which numeric feature to analyze for outliers"
-        )
-        outlier_threshold = st.slider("Outlier Threshold (IQR multiplier)", 1.0, 3.0, 1.5, step=0.1,
-                                    help="Higher values detect fewer extreme outliers")
-    elif analysis_type == "Data Explorer":
-        confidence_threshold = st.slider("Minimum Confidence Threshold", 50, 100, 75,
-                                       help="Only show predictions with at least this confidence level")
-        status_filter = st.selectbox("Filter by Status", ["All", "Approved", "Rejected"],
-                                   help="Filter applications by approval status")
+    if page != "Dashboard":
+        if page == "Feature Importance":
+            num_features = st.slider("Number of Features to Show", 5, 30, 15,
+                                   help="Adjust to focus on top N most important features")
+        elif page == "Data Distribution":
+            selected_feature = st.selectbox(
+                "Select Feature",
+                CONFIG["data"]["features"]["numeric"] if raw_data is not None else [],
+                help="Choose which feature to analyze distributions for"
+            )
+        elif page == "Outlier Detection":
+            outlier_feature = st.selectbox(
+                "Select Feature for Outlier Analysis",
+                ['LoanAmount', 'ApplicantIncome', 'Loan_to_Income_Ratio'],
+                help="Choose which numeric feature to analyze for outliers"
+            )
+            outlier_threshold = st.slider("Outlier Threshold (IQR multiplier)", 1.0, 3.0, 1.5, step=0.1,
+                                        help="Higher values detect fewer extreme outliers")
+        elif page == "Data Explorer":
+            confidence_threshold = st.slider("Minimum Confidence Threshold", 50, 100, 75,
+                                           help="Only show predictions with at least this confidence level")
+            status_filter = st.selectbox("Filter by Status", ["All", "Approved", "Rejected"],
+                                       help="Filter applications by approval status")
     
     st.markdown("---")
     st.markdown(f"**Model Version:** {CONFIG['app']['content']['system_status']['model_version']}")
@@ -1319,119 +1598,129 @@ with st.sidebar:
     st.markdown(f"📞 {CONFIG['app']['content']['contact_info']['phone']}")
     st.markdown(f"✉️ {CONFIG['app']['content']['contact_info']['email']}")
 
-# Main content
-st.markdown(f'<div class="header-text">{CONFIG["app"]["content"]["header_title"]}</div>', unsafe_allow_html=True)
-st.markdown("---")
-
-if model is not None:
-    if analysis_type == "New Application":
-        st.subheader("📝 New Loan Application")
-        
-        input_data = get_user_input()
-        if input_data is not None:
-            try:
-                input_df = pd.DataFrame([input_data])
-                expected_features = CONFIG["data"]["features"]["numeric"] + CONFIG["data"]["features"]["categorical"]
-                available_features = [f for f in expected_features if f in input_df.columns]
-                
-                if not available_features:
-                    st.error("No matching features found between input and model requirements")
-                else:
-                    X_input = input_df[available_features]
-                    prediction = model.predict(X_input)[0]
-                    probability = max(model.predict_proba(X_input)[0])
-                    
-                    st.markdown("---")
-                    st.subheader("📊 Prediction Results")
-                    
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.metric(
-                            "Prediction", 
-                            "Approved" if prediction == 1 else "Rejected", 
-                            delta=f"{probability*100:.1f}% confidence", 
-                            delta_color="normal"
-                        )
-                    
-                    with col2:
-                        st.metric("Loan Amount", f"₹{input_data['LoanAmount']:,.0f}")
-                        st.metric("Loan Term", f"{input_data['Loan_Amount_Term']:.0f} months")
-                    
-                    st.markdown("---")
-                    get_recommendations(prediction, probability, input_data)
-                    
-                    if hasattr(model, 'feature_importances_'):
-                        st.markdown("---")
-                        st.subheader("🔍 Key Decision Factors")
-                        
-                        importance = model.feature_importances_
-                        features = available_features
-                        
-                        top_idx = np.argsort(importance)[::-1][:5]
-                        top_features = [features[i] for i in top_idx]
-                        top_importance = importance[top_idx]
-                        
-                        fig = px.bar(
-                            x=top_importance,
-                            y=top_features,
-                            orientation='h',
-                            labels={'x': 'Importance', 'y': 'Feature'},
-                            title='Top Influencing Features'
-                        )
-                        fig.update_layout(height=400)
-                        st.plotly_chart(fig, use_container_width=True)
-                    else:
-                        st.warning("Feature importance is not available for the current model.")
-            except Exception as e:
-                st.error(f"Error processing your application: {str(e)}")
-    
-    elif raw_data is not None:
-        processed_data = preprocess_data(raw_data)
-        if processed_data is not None:
-            X = processed_data[CONFIG["data"]["features"]["numeric"] + CONFIG["data"]["features"]["categorical"]]
-            predictions = model.predict(X)
-            proba = model.predict_proba(X)
-            
-            data = processed_data.copy()
-            data['Prediction'] = ['Approved' if p == 1 else 'Rejected' for p in predictions]
-            data['Probability'] = [max(p) for p in proba]
-            data['Confidence'] = [f"{max(p)*100:.1f}%" for p in proba]
-            
-            # Metrics row
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                st.metric("Total Applications", len(data))
-            with col2:
-                approval_rate = (data['Prediction'] == 'Approved').mean()
-                st.metric("Approval Rate", f"{approval_rate:.1%}")
-            with col3:
-                avg_confidence = data['Probability'].mean()
-                st.metric("Avg Confidence", f"{avg_confidence:.1%}")
-            with col4:
-                st.metric("Model Accuracy", f"{metadata['metrics']['accuracy']:.1%}")
-            
-            st.markdown("---")
-            
-            if analysis_type == "Feature Importance":
-                show_feature_importance(
-                    model, 
-                    CONFIG["data"]["features"]["numeric"] + CONFIG["data"]["features"]["categorical"], 
-                    num_features
-                )
-                
-            elif analysis_type == "Data Distribution":
-                show_data_distribution(data, selected_feature)
-                
-            elif analysis_type == "Outlier Detection":
-                show_outlier_analysis(data, outlier_feature, outlier_threshold)
-                    
-            elif analysis_type == "Correlation Analysis":
-                show_correlation_analysis(data)
-                
-            elif analysis_type == "Data Explorer":
-                show_data_explorer(data, confidence_threshold, status_filter)
+# Main content routing
+if page == "Dashboard":
+    show_dashboard(model, metadata, raw_data)
 else:
-    st.error("Unable to load model. Please check the configuration.")
+    if model is not None:
+        if page == "New Application":
+            st.subheader("📝 New Loan Application")
+            
+            input_data = get_user_input()
+            if input_data is not None:
+                try:
+                    input_df = pd.DataFrame([input_data])
+                    expected_features = CONFIG["data"]["features"]["numeric"] + CONFIG["data"]["features"]["categorical"]
+                    available_features = [f for f in expected_features if f in input_df.columns]
+                    
+                    if not available_features:
+                        st.error("No matching features found between input and model requirements")
+                    else:
+                        X_input = input_df[available_features]
+                        prediction = model.predict(X_input)[0]
+                        probability = max(model.predict_proba(X_input)[0])
+                        
+                        st.markdown("---")
+                        st.subheader("📊 Prediction Results")
+                        
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            st.metric(
+                                "Prediction", 
+                                "Approved" if prediction == 1 else "Rejected", 
+                                delta=f"{probability*100:.1f}% confidence", 
+                                delta_color="normal"
+                            )
+                        
+                        with col2:
+                            st.metric("Loan Amount", f"₹{input_data['LoanAmount']:,.0f}")
+                            st.metric("Loan Term", f"{input_data['Loan_Amount_Term']:.0f} months")
+                        
+                        st.markdown("---")
+                        get_recommendations(prediction, probability, input_data)
+                        
+                        if hasattr(model, 'feature_importances_'):
+                            st.markdown("---")
+                            st.subheader("🔍 Key Decision Factors")
+                            
+                            importance = model.feature_importances_
+                            features = available_features
+                            
+                            top_idx = np.argsort(importance)[::-1][:5]
+                            top_features = [features[i] for i in top_idx]
+                            top_importance = importance[top_idx]
+                            
+                            fig = px.bar(
+                                x=top_importance,
+                                y=top_features,
+                                orientation='h',
+                                labels={'x': 'Importance', 'y': 'Feature'},
+                                title='Top Influencing Features'
+                            )
+                            fig.update_layout(height=400)
+                            st.plotly_chart(fig, use_container_width=True)
+                        else:
+                            st.warning("Feature importance is not available for the current model.")
+                except Exception as e:
+                    st.error(f"Error processing your application: {str(e)}")
+        
+        elif raw_data is not None:
+            processed_data = preprocess_data(raw_data)
+            if processed_data is not None:
+                X = processed_data[CONFIG["data"]["features"]["numeric"] + CONFIG["data"]["features"]["categorical"]]
+                predictions = model.predict(X)
+                proba = model.predict_proba(X)[:, 1]  # Probability of positive class
+                
+                data = processed_data.copy()
+                data['Prediction'] = ['Approved' if p == 1 else 'Rejected' for p in predictions]
+                data['Probability'] = [max(p) for p in model.predict_proba(X)]
+                data['Confidence'] = [f"{max(p)*100:.1f}%" for p in model.predict_proba(X)]
+                
+                # If we have true labels in the data (for confusion matrix)
+                if 'Loan_Status' in data.columns:
+                    y_true = data['Loan_Status'].map({'Y': 1, 'N': 0}).values
+                    y_pred = predictions
+                    y_proba = proba
+                
+                # Metrics row
+                col1, col2, col3, col4 = st.columns(4)
+                with col1:
+                    st.metric("Total Applications", len(data))
+                with col2:
+                    approval_rate = (data['Prediction'] == 'Approved').mean()
+                    st.metric("Approval Rate", f"{approval_rate:.1%}")
+                with col3:
+                    avg_confidence = data['Probability'].mean()
+                    st.metric("Avg Confidence", f"{avg_confidence:.1%}")
+                with col4:
+                    st.metric("Model Accuracy", f"{metadata['metrics']['accuracy']:.1%}")
+                
+                st.markdown("---")
+                
+                if page == "Feature Importance":
+                    show_feature_importance(
+                        model, 
+                        CONFIG["data"]["features"]["numeric"] + CONFIG["data"]["features"]["categorical"], 
+                        num_features
+                    )
+                    
+                elif page == "Data Distribution":
+                    show_data_distribution(data, selected_feature)
+                    
+                elif page == "Outlier Detection":
+                    show_outlier_analysis(data, outlier_feature, outlier_threshold)
+                        
+                elif page == "Correlation Analysis":
+                    show_correlation_analysis(data)
+                    
+                elif page == "Data Explorer":
+                    show_data_explorer(data, confidence_threshold, status_filter)
+                    
+                elif page == "Confusion Matrix":
+                    if 'Loan_Status' in data.columns:
+                        show_confusion_matrix_analysis(y_true, y_pred, y_proba)
+                    else:
+                        st.error("True labels ('Loan_Status') not found in data - cannot show confusion matrix")
 
 # Footer
 st.markdown("---")

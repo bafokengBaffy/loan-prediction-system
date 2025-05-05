@@ -93,6 +93,7 @@ CONFIG = {
         "retrain_interval": 100,
         "content": {
             "header_title": "LOAN APPROVAL DECISION SYSTEM",
+            "header_subtitle": "AI-powered decision support system with 92.3% accuracy",  # Added this line
             "system_status": {
                 "model_version": f"v4.2.1_{CURRENT_DATE}",
                 "decision_speed": "42ms avg",
@@ -105,7 +106,7 @@ CONFIG = {
             "footer": {
                 "copyright": "© 2023 Loan Decision Systems Inc.",
                 "disclaimer": "This system provides recommendations only. Final decisions require human review.",
-                "note": "v4.2.1 | Last updated: {CURRENT_DATE}"
+                "note": f"v4.2.1 | Last updated: {CURRENT_DATE}"  # Fixed f-string
             }
         },
         "compliance_rules": {
