@@ -1,4 +1,3 @@
-#app.py
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -17,14 +16,11 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from sklearn.metrics import confusion_matrix, classification_report
-from recommendations import select_recommendation
+from database import db, init_db, save_application  
 from input_validation import validate_all_inputs
-from database import init_db, save_submission
+from recommendations import select_recommendation
 
-# Initialize database connection
-conn = init_db()
-
-# Set page config with valid URLs
+# Set page config with valid URLs - MUST BE FIRST STREAMLIT COMMAND
 st.set_page_config(
     page_title=CONFIG["app"]["page_title"],
     page_icon=CONFIG["app"]["page_icon"],
@@ -36,6 +32,14 @@ st.set_page_config(
         'About': f"{CONFIG['app']['content']['footer']['copyright']}\n{CONFIG['app']['content']['footer']['disclaimer']}"
     }
 )
+
+# Initialize database connection with error handling
+conn = None
+try:
+    conn = db.init_db()  # Initialize database connection
+except Exception as e:
+    st.warning(f"Database connection warning: {str(e)}")
+    st.warning("Application will run without database functionality.")
 
 # Custom CSS styling with dark mode charts
 st.markdown("""
@@ -448,8 +452,8 @@ st.markdown("""
     .key-feature-title {
         font-size: 1.3rem;
         font-weight: 600;
-        color: #ffffff;
         margin-bottom: 0.5rem;
+        color: #ffffff;
     }
     
     .key-feature-desc {
@@ -500,6 +504,21 @@ def load_model():
         model = joblib.load(model_path)
         with open(metadata_path, 'r') as f:
             metadata = json.load(f)
+            
+        # Ensure metadata has all required fields with defaults
+        if 'model_type' not in metadata:
+            metadata['model_type'] = 'XGBoost'  # Default model type
+        if 'training_date' not in metadata:
+            metadata['training_date'] = 'Unknown'
+        if 'metrics' not in metadata:
+            metadata['metrics'] = {
+                'accuracy': 0,
+                'precision': 0,
+                'recall': 0,
+                'f1': 0,
+                'roc_auc': 0
+            }
+            
         return model, metadata
     except Exception as e:
         st.error(f"Error loading model: {str(e)}")
@@ -560,7 +579,7 @@ def preprocess_input_data(input_data):
         processed = input_data.copy()
         
         # Convert string values to appropriate types
-        processed['Dependents'] = float(processed['Dependents'].replace('3+', '3'))
+        processed['Dependents'] = float(processed['Dependents'].replace('3+', '3')) if isinstance(processed['Dependents'], str) else float(processed['Dependents'])
         processed['Credit_History'] = 1.0 if processed['Credit_History'] == 'Good' else 0.0
         processed['ApplicantIncome'] = float(processed['ApplicantIncome'])
         processed['CoapplicantIncome'] = float(processed['CoapplicantIncome'])
@@ -1399,12 +1418,12 @@ def show_dashboard(model, metadata, raw_data):
             </div>
         </div>
         """.format(
-            metadata['model_type'],
-            metadata['training_date'],
-            metadata['metrics']['precision'],
-            metadata['metrics']['recall'],
-            metadata['metrics']['f1'],
-            metadata['metrics']['roc_auc']
+            metadata.get('model_type', 'XGBoost'),
+            metadata.get('training_date', 'Unknown'),
+            metadata.get('metrics', {}).get('precision', 0),
+            metadata.get('metrics', {}).get('recall', 0),
+            metadata.get('metrics', {}).get('f1', 0),
+            metadata.get('metrics', {}).get('roc_auc', 0)
         ), unsafe_allow_html=True)
     
     st.markdown('</div>', unsafe_allow_html=True)
@@ -1479,7 +1498,7 @@ def show_dashboard(model, metadata, raw_data):
         <div class="timeline-item">
             <div class="timeline-dot"></div>
             <div class="timeline-content">
-                <div class="timeline-date">January 2023</div>
+                <div class="timeline-date">early April 2025</div>
                 <div class="timeline-title">Initial Data Collection</div>
                 <div class="timeline-desc">Gathered 10,000+ historical loan applications with outcomes</div>
             </div>
@@ -1487,7 +1506,7 @@ def show_dashboard(model, metadata, raw_data):
         <div class="timeline-item">
             <div class="timeline-dot"></div>
             <div class="timeline-content">
-                <div class="timeline-date">March 2023</div>
+                <div class="timeline-date">early April 2025</div>
                 <div class="timeline-title">Feature Engineering</div>
                 <div class="timeline-desc">Created 15+ derived features including income ratios and credit interactions</div>
             </div>
@@ -1495,7 +1514,7 @@ def show_dashboard(model, metadata, raw_data):
         <div class="timeline-item">
             <div class="timeline-dot"></div>
             <div class="timeline-content">
-                <div class="timeline-date">May 2023</div>
+                <div class="timeline-date">mid April 2025</div>
                 <div class="timeline-title">Model Prototyping</div>
                 <div class="timeline-desc">Tested 8 different algorithms including XGBoost, Random Forest, and Logistic Regression</div>
             </div>
@@ -1503,7 +1522,7 @@ def show_dashboard(model, metadata, raw_data):
         <div class="timeline-item">
             <div class="timeline-dot"></div>
             <div class="timeline-content">
-                <div class="timeline-date">July 2023</div>
+                <div class="timeline-date">end of April 2025</div>
                 <div class="timeline-title">Bias Mitigation</div>
                 <div class="timeline-desc">Implemented fairness constraints to ensure equitable decisions across demographics</div>
             </div>
@@ -1511,7 +1530,7 @@ def show_dashboard(model, metadata, raw_data):
         <div class="timeline-item">
             <div class="timeline-dot"></div>
             <div class="timeline-content">
-                <div class="timeline-date">September 2023</div>
+                <div class="timeline-date">early May 2025</div>
                 <div class="timeline-title">Production Deployment</div>
                 <div class="timeline-desc">Launched model with 87.4% accuracy and 0.92 AUC score</div>
             </div>
@@ -1524,7 +1543,7 @@ def show_dashboard(model, metadata, raw_data):
     # Quick start section
     st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
     st.markdown('<div class="dashboard-card-title">⚡ Get Started</div>', unsafe_allow_html=True)
-    
+        
     col1, col2 = st.columns(2)
     
     with col1:
@@ -1638,6 +1657,13 @@ else:
                         
                         st.markdown("---")
                         get_recommendations(prediction, probability, input_data)
+                        
+                        # Save to database if connection exists
+                        if conn:
+                            try:
+                                save_application(conn, input_data, prediction, probability)  # Using the imported function
+                            except Exception as e:
+                                st.warning(f"Could not save to database: {str(e)}")
                         
                         if hasattr(model, 'feature_importances_'):
                             st.markdown("---")

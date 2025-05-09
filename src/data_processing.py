@@ -1,8 +1,16 @@
-# data_processing.py
+# data_processing.py (Updated for MySQL)
 import pandas as pd
 from pathlib import Path
 from database import get_unprocessed_submissions, mark_as_processed
 from config import CONFIG
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 def process_new_submissions(conn):
     """Process new submissions and add to training data"""
@@ -10,11 +18,18 @@ def process_new_submissions(conn):
         # Get unprocessed submissions
         new_data = get_unprocessed_submissions(conn)
         if new_data.empty:
+            logger.info("No new submissions to process")
             return False
+        
+        logger.info(f"Processing {len(new_data)} new submissions")
         
         # Load existing data
         data_path = Path(CONFIG["data"]["raw_path"])
-        existing_data = pd.read_csv(data_path)
+        try:
+            existing_data = pd.read_csv(data_path)
+        except FileNotFoundError:
+            existing_data = pd.DataFrame()
+            logger.info("No existing data found, creating new dataset")
         
         # Transform new data to match existing format
         new_data['Loan_Status'] = new_data['prediction'].map({1: 'Y', 0: 'N'})
@@ -48,7 +63,9 @@ def process_new_submissions(conn):
         # Mark submissions as processed
         mark_as_processed(conn, new_data['id'].tolist())
         
+        logger.info(f"Successfully processed {len(new_data)} submissions")
         return True
+        
     except Exception as e:
-        print(f"Error processing new submissions: {e}")
+        logger.error(f"Error processing new submissions: {e}")
         return False
