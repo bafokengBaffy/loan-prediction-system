@@ -33,7 +33,7 @@ from xgboost import XGBClassifier
 from skopt import BayesSearchCV
 from skopt.space import Real, Integer
 
-from config import CONFIG
+from config import CONFIG, CURRENT_DATE
 
 # Configure logging
 logging.basicConfig(
@@ -307,11 +307,14 @@ class EnhancedLoanModelTrainer:
                 model_path = os.path.join(model_dir, CONFIG["model"]["best_model_name"])
                 joblib.dump(opt.best_estimator_, model_path)
                 
+                # In train_model.py, inside the train_model method, update the metadata section:
                 metadata = {
-                    "metrics": metrics,
-                    "best_params": str(opt.best_params_),
-                    "feature_importances": importance_df.to_dict(),
-                    "classification_report": clf_report
+                "metrics": metrics,
+                "model_type": "XGBoost",  # Add this line
+                "training_date": CURRENT_DATE,  # Add this line
+                "best_params": str(opt.best_params_),
+                "feature_importances": importance_df.to_dict(),
+                "classification_report": clf_report
                 }
                 
                 with open(os.path.join(model_dir, CONFIG["model"]["metadata_name"]), 'w') as f:
