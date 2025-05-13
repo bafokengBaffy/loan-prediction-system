@@ -615,9 +615,9 @@ def get_user_input():
                 dependents = st.selectbox("Dependents", ["0", "1", "2", "3+"])
                 
             with col2:
-                applicant_income = st.number_input("Applicant Income (₹)", min_value=0, value=5000, step=1000)
-                coapplicant_income = st.number_input("Coapplicant Income (₹)", min_value=0, value=0, step=1000)
-                loan_amount = st.number_input("Loan Amount (₹)", min_value=0, value=100000, step=10000)
+                applicant_income = st.number_input("Applicant Income (LSL)", min_value=0, value=5000, step=1000)
+                coapplicant_income = st.number_input("Coapplicant Income (LSL)", min_value=0, value=0, step=1000)
+                loan_amount = st.number_input("Loan Amount (LSL)", min_value=0, value=100000, step=10000)
                 loan_amount_term = st.number_input("Loan Term (months)", min_value=12, max_value=480, value=360)
                 credit_history = st.selectbox("Credit History", ["Good", "No History"])
                 
@@ -1653,7 +1653,7 @@ else:
                             )
                         
                         with col2:
-                            st.metric("Loan Amount", f"₹{input_data['LoanAmount']:,.0f}")
+                            st.metric("Loan Amount", f"LSL {input_data['LoanAmount']:,.0f}")
                             st.metric("Loan Term", f"{input_data['Loan_Amount_Term']:.0f} months")
                         
                         st.markdown("---")

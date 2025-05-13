@@ -123,6 +123,10 @@ CONFIG = {
         "user": "root",
         "password": "1111",
         "port": 3306
-    }
+    }, 
+        "currency": {
+        "symbol": "LSL",
+        "name": "Maluti"
+    },
     }
 }
